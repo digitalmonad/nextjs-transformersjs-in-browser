@@ -13,7 +13,7 @@ export default function Home() {
 
   return (
     <div className="py-12">
-      <div className="mx-auto container max-w-3xl flex flex-col gap-2">
+      <div className="mx-auto container max-w-4xl flex flex-col gap-2">
         <div className="flex flex-col border rounded-lg">
           <div className="bg-black rounded-t-lg p-2">
             <h1 className="text-lg text-background font-bold">

@@ -97,38 +97,71 @@ export default function Dropzone({
       {/* Preview */}
       <div className="">
         {files.length > 0 && (
-          <div className="mt-6 relative h-125 rounded-lg shadow-lg">
-            <Image
-              src={files[0].preview}
-              alt={files[0].name}
-              fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              onLoad={() => {
-                URL.revokeObjectURL(files[0].preview);
-              }}
-              className={cn(
-                "rounded-lg object-cover",
-                status !== "detection:complete" && "animate-pulse",
+          <div className="mt-6 flex gap-4">
+            {/* Left: image with bounding boxes */}
+            <div className="relative flex-1 h-96 rounded-lg border">
+              <Image
+                src={files[0].preview}
+                alt={files[0].name}
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                onLoad={() => {
+                  URL.revokeObjectURL(files[0].preview);
+                }}
+                className={cn(
+                  "rounded-lg object-cover",
+                  status !== "detection:complete" && "animate-pulse",
+                )}
+              />
+
+              {result &&
+                result.map((object, index) => (
+                  <BoundingBox key={index} object={object} />
+                ))}
+
+              <button
+                type="button"
+                className="absolute -left-3 -top-3 z-10 flex h-5 w-5 items-center justify-center rounded-md border border-destructive bg-destructive text-white transition-colors hover:bg-white hover:text-destructive cursor-pointer"
+                onClick={remove}
+              >
+                <X strokeWidth={1.5} className="h-5 w-5" />
+              </button>
+              {status !== "detection:complete" && (
+                <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50 text-xl font-semibold text-white">
+                  Detecting Objects...
+                </div>
               )}
-            />
+            </div>
 
-            {result &&
-              result.map((object, index) => (
-                <BoundingBox key={index} object={object} />
-              ))}
-
-            <button
-              type="button"
-              className="absolute -right-3 -top-3 z-10 flex h-5 w-5 items-center justify-center rounded-md border border-destructive bg-destructive text-white transition-colors hover:bg-white hover:text-destructive cursor-pointer"
-              onClick={remove}
-            >
-              <X strokeWidth={1.5} className="h-5 w-5" />
-            </button>
-            {status !== "detection:complete" && (
-              <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50 text-xl font-semibold text-white">
-                Detecting Objects...
-              </div>
-            )}
+            {/* Right: detected objects list */}
+            <div className="w-52 flex flex-col gap-1">
+              <p className="text-sm font-semibold text-foreground">
+                Detected objects
+              </p>
+              {status !== "detection:complete" ? (
+                <p className="text-sm text-muted-foreground">Detecting…</p>
+              ) : result && result.length > 0 ? (
+                <ul className="flex flex-col gap-1 overflow-y-auto max-h-96">
+                  {result.map((object, index) => (
+                    <li
+                      key={index}
+                      className="flex items-center justify-between rounded-md border px-2 py-1 text-sm"
+                    >
+                      <span className="font-medium capitalize">
+                        {object.label}
+                      </span>
+                      <span className="text-muted-foreground">
+                        {(object.score * 100).toFixed(0)}%
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No objects detected.
+                </p>
+              )}
+            </div>
           </div>
         )}
 
