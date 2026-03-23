@@ -7,12 +7,12 @@ import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import BoundingBox from "./bounding-box";
 import { toast } from "sonner";
-import type { DetectionResult, WorkerMessageName } from "@/lib/worker.types";
+import type { DetectionResult, WorkerMessageName } from "@/lib/types";
 import { Button } from "./ui/button";
 
 type FileWithPreview = File & { preview: string };
 
-export default function Dropzone({
+export function Dropzone({
   status,
   setStatus,
   detector,

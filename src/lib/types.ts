@@ -16,12 +16,10 @@ export type WorkerOutgoingMessage =
 export type WorkerMessageName = WorkerOutgoingMessage["name"];
 
 /** Extract the payload type for a given outgoing message name. */
-export type WorkerPayload<N extends WorkerMessageName> = Extract<
-  WorkerOutgoingMessage,
-  { name: N }
-> extends { payload: infer P }
-  ? P
-  : never;
+export type WorkerPayload<N extends WorkerMessageName> =
+  Extract<WorkerOutgoingMessage, { name: N }> extends { payload: infer P }
+    ? P
+    : never;
 
 export type DetectionResult = {
   box: { xmin: number; ymin: number; xmax: number; ymax: number };

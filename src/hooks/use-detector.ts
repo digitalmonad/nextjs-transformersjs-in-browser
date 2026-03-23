@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { useWorker } from "@/hooks/use-worker";
 import { toast } from "sonner";
-import type { DetectionResult, WorkerMessageName } from "@/lib/worker.types";
+import type { DetectionResult, WorkerMessageName } from "@/lib/types";
 
 export function useDetector() {
   const [result, setResult] = useState<DetectionResult[] | null>(null);

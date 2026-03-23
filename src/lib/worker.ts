@@ -1,6 +1,6 @@
 import { pipeline, env, PipelineType } from "@huggingface/transformers";
-import type { WorkerIncomingMessage } from "./worker.types";
-import { MODEL_NAME } from "./worker.types";
+import type { WorkerIncomingMessage } from "./types";
+import { MODEL_NAME } from "./types";
 
 env.allowLocalModels = false;
 
