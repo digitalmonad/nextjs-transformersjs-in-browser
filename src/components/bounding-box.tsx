@@ -29,7 +29,7 @@ export default function BoundingBox({ object }: { object: DetectionResult }) {
         {label} {(score * 100).toFixed(0)}%
       </span>
       <div
-        className="absolute rounded-sm cursor-pointer"
+        className="absolute rounded-sm"
         style={{
           left,
           top,

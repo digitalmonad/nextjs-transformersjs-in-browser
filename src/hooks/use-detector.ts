@@ -2,40 +2,40 @@
 
 import { useState, useCallback } from "react";
 import { useWorker } from "@/hooks/use-worker";
-
-type DetectionResult = {
-  box: { xmin: number; ymin: number; xmax: number; ymax: number };
-  label: string;
-  score: number;
-};
+import { toast } from "sonner";
+import type { DetectionResult, WorkerMessageName } from "@/lib/worker.types";
 
 export function useDetector() {
   const [result, setResult] = useState<DetectionResult[] | null>(null);
   const [ready, setReady] = useState<boolean | null>(null);
   const [progress, setProgress] = useState(0);
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState<WorkerMessageName | "">("");
 
   const worker = useWorker((e: MessageEvent) => {
-    switch (e.data.status) {
-      case "initiate":
-        setStatus("initiate");
+    const { name, payload } = e.data;
+    switch (name) {
+      case "model:loading":
+        toast.info("Downloading model...");
+        setStatus("model:loading");
         setReady(false);
         break;
-      case "progress":
-        setStatus("progress");
-        setProgress(e.data.progress);
+      case "model:progress":
+        setStatus("model:progress");
+        setProgress(payload?.progress?.progress ?? 0);
         break;
-      case "ready":
-        setStatus("ready");
+      case "model:ready":
+        toast.info("Model ready for work.");
+        setStatus("model:ready");
         setReady(true);
         break;
-      case "complete":
-        setStatus("complete");
-        setResult(e.data.result);
+      case "detection:complete":
+        setStatus("detection:complete");
+        setResult(payload.result);
         break;
       case "error":
         setStatus("error");
         setReady(null);
+        toast.error(payload?.error ?? "Detection failed");
         break;
     }
   });
@@ -43,11 +43,26 @@ export function useDetector() {
   const start = useCallback(
     (image: string | ArrayBuffer | null) => {
       if (worker) {
-        worker.postMessage({ image });
+        worker.postMessage({ name: "detect", payload: { image } });
       }
     },
     [worker],
   );
 
-  return { result, setResult, ready, progress, status, setStatus, start };
+  const downloadModel = useCallback(() => {
+    if (worker) {
+      worker.postMessage({ name: "preload" });
+    }
+  }, [worker]);
+
+  return {
+    result,
+    setResult,
+    ready,
+    progress,
+    status,
+    setStatus,
+    start,
+    downloadModel,
+  };
 }

@@ -6,14 +6,9 @@ import { useDropzone, FileRejection } from "react-dropzone";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import BoundingBox from "./bounding-box";
+import type { DetectionResult, WorkerMessageName } from "@/lib/worker.types";
 
 type FileWithPreview = File & { preview: string };
-
-type DetectionResult = {
-  box: { xmin: number; ymin: number; xmax: number; ymax: number };
-  label: string;
-  score: number;
-};
 
 export default function Dropzone({
   status,
@@ -23,12 +18,12 @@ export default function Dropzone({
   setResult,
   className,
 }: {
-  status: string;
-  setStatus: (status: string) => void;
+  status: WorkerMessageName | "";
+  setStatus: (status: WorkerMessageName | "") => void;
   detector: (image: string | ArrayBuffer | null) => void;
   result: DetectionResult[] | null;
   setResult: (result: DetectionResult[] | null) => void;
-  className: string;
+  className?: string;
 }) {
   const [files, setFiles] = useState<FileWithPreview[]>([]);
   const [rejected, setRejected] = useState<FileRejection[]>([]);
@@ -42,7 +37,7 @@ export default function Dropzone({
           ),
         ]);
 
-        setStatus("ready");
+        setStatus("model:ready");
         setResult(null);
 
         const reader = new FileReader();
@@ -86,7 +81,7 @@ export default function Dropzone({
     <>
       <div
         {...getRootProps({
-          className: className,
+          className: cn("rounded-md py-10 border-dashed border-2", className),
         })}
       >
         <input {...getInputProps({ name: "file" })} />
@@ -100,9 +95,9 @@ export default function Dropzone({
       </div>
 
       {/* Preview */}
-      <section className="mt-6">
+      <div className="">
         {files.length > 0 && (
-          <div className="relative h-125 rounded-lg shadow-lg">
+          <div className="mt-6 relative h-125 rounded-lg shadow-lg">
             <Image
               src={files[0].preview}
               alt={files[0].name}
@@ -113,7 +108,7 @@ export default function Dropzone({
               }}
               className={cn(
                 "rounded-lg object-cover",
-                status !== "complete" && "animate-pulse",
+                status !== "detection:complete" && "animate-pulse",
               )}
             />
 
@@ -124,12 +119,12 @@ export default function Dropzone({
 
             <button
               type="button"
-              className="absolute -right-3 -top-3 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-rose-400 bg-rose-400 text-white transition-colors hover:bg-white hover:text-rose-400"
+              className="absolute -right-3 -top-3 z-10 flex h-5 w-5 items-center justify-center rounded-md border border-destructive bg-destructive text-white transition-colors hover:bg-white hover:text-destructive cursor-pointer"
               onClick={remove}
             >
               <X strokeWidth={1.5} className="h-5 w-5" />
             </button>
-            {status !== "complete" && (
+            {status !== "detection:complete" && (
               <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50 text-xl font-semibold text-white">
                 Detecting Objects...
               </div>
@@ -170,7 +165,7 @@ export default function Dropzone({
             </ul>
           </div>
         )}
-      </section>
+      </div>
     </>
   );
 }
