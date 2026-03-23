@@ -88,7 +88,8 @@ export function Dropzone({
 
   const loadExample = useCallback(async () => {
     try {
-      const response = await fetch("/cat.jpg");
+      const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+      const response = await fetch(`${basePath}/cat.jpg`);
       const blob = await response.blob();
       const file = Object.assign(
         new File([blob], "cat.jpg", { type: blob.type }),
