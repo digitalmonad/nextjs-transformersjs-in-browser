@@ -1,4 +1,15 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# In-browser Object Detection with Transformers.js
+
+A [Next.js](https://nextjs.org) demo that runs AI object detection **entirely in the browser** — no server, no API, no data leaves your device.
+
+## How it works
+
+1. **Model download** — click _Download Model_ to fetch the [Xenova/detr-resnet-50](https://huggingface.co/Xenova/detr-resnet-50) weights from Hugging Face. The model is cached in the browser after the first download.
+2. **Image upload** — drag & drop (or click to select) any image. Only JPEG/PNG up to 1 MB are accepted.
+3. **Detection** — the image is passed to a [Web Worker](src/lib/worker.ts) where [Transformers.js](https://huggingface.co/docs/transformers.js/index) runs the DETR ResNet-50 model and returns a list of detected objects with bounding boxes and confidence scores.
+4. **Results** — the image is displayed on the left with coloured bounding boxes drawn over each detected object. The right panel lists every detected object with its confidence score.
+
+The model supports 80 object categories from the COCO 2017 dataset.
 
 ## Getting Started
 

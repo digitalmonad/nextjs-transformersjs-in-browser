@@ -6,7 +6,9 @@ import { useDropzone, FileRejection } from "react-dropzone";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import BoundingBox from "./bounding-box";
+import { toast } from "sonner";
 import type { DetectionResult, WorkerMessageName } from "@/lib/worker.types";
+import { Button } from "./ui/button";
 
 type FileWithPreview = File & { preview: string };
 
@@ -26,7 +28,6 @@ export default function Dropzone({
   className?: string;
 }) {
   const [files, setFiles] = useState<FileWithPreview[]>([]);
-  const [rejected, setRejected] = useState<FileRejection[]>([]);
 
   const onDrop = useCallback(
     (accepted: File[], rejectedFiles: FileRejection[]) => {
@@ -39,6 +40,7 @@ export default function Dropzone({
 
         setStatus("model:ready");
         setResult(null);
+        toast.info("Image accepted — running detection…");
 
         const reader = new FileReader();
 
@@ -49,11 +51,18 @@ export default function Dropzone({
           }
         };
 
+        reader.onerror = function () {
+          toast.error("Failed to read the image file.");
+        };
+
         reader.readAsDataURL(accepted[0]);
       }
 
       if (rejectedFiles?.length) {
-        setRejected(rejectedFiles);
+        rejectedFiles.forEach(({ file, errors }) => {
+          const reasons = errors.map((e) => e.message).join(", ");
+          toast.error(`"${file.name}" was rejected: ${reasons}`);
+        });
       }
     },
     [detector, setResult, setStatus],
@@ -74,8 +83,36 @@ export default function Dropzone({
 
   const remove = () => {
     setFiles([]);
-    setRejected([]);
+    toast.info("Image removed.");
   };
+
+  const loadExample = useCallback(async () => {
+    try {
+      const response = await fetch("/cat.jpg");
+      const blob = await response.blob();
+      const file = Object.assign(
+        new File([blob], "cat.jpg", { type: blob.type }),
+        { preview: URL.createObjectURL(blob) },
+      ) as FileWithPreview;
+
+      setFiles([file]);
+      setStatus("model:ready");
+      setResult(null);
+      toast.info("Example image loaded — running detection…");
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const image = e?.target?.result;
+        if (image !== undefined) {
+          detector(image);
+        }
+      };
+      reader.onerror = () => toast.error("Failed to read the example image.");
+      reader.readAsDataURL(blob);
+    } catch {
+      toast.error("Failed to load the example image.");
+    }
+  }, [detector, setResult, setStatus]);
 
   return (
     <>
@@ -89,8 +126,18 @@ export default function Dropzone({
           {isDragActive ? (
             <p>Drop the files here ...</p>
           ) : (
-            <p>Drag & drop files here, or click to select files</p>
+            <p>Drag & drop files here, click to select files</p>
           )}
+          <Button
+            variant={"ghost"}
+            onClick={(e) => {
+              e.stopPropagation();
+              loadExample();
+            }}
+            className="text-sm underline text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          >
+            or try the example image
+          </Button>
         </div>
       </div>
 
@@ -162,40 +209,6 @@ export default function Dropzone({
                 </p>
               )}
             </div>
-          </div>
-        )}
-
-        {rejected.length > 0 && (
-          <div>
-            <h3 className="title mt-24 border-b pb-3 text-lg font-semibold text-gray-600">
-              Rejected Files
-            </h3>
-            <ul className="mt-6 flex flex-col">
-              {rejected.map(({ file, errors }) => (
-                <li
-                  key={file.name}
-                  className="flex items-start justify-between"
-                >
-                  <div>
-                    <p className="mt-2 text-sm font-medium text-gray-500">
-                      {file.name}
-                    </p>
-                    <ul className="text-[12px] text-red-400">
-                      {errors.map((error) => (
-                        <li key={error.code}>{error.message}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <button
-                    type="button"
-                    className="mt-1 rounded-lg border border-rose-400 px-3 py-1 text-[12px] font-bold uppercase tracking-wider text-gray-500 transition-colors hover:bg-rose-400 hover:text-white"
-                    onClick={remove}
-                  >
-                    remove
-                  </button>
-                </li>
-              ))}
-            </ul>
           </div>
         )}
       </div>

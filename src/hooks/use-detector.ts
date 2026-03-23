@@ -24,14 +24,23 @@ export function useDetector() {
         setProgress(payload?.progress?.progress ?? 0);
         break;
       case "model:ready":
-        toast.info("Model ready for work.");
+        toast.success("Model downloaded and ready!");
         setStatus("model:ready");
         setReady(true);
         break;
-      case "detection:complete":
+      case "detection:complete": {
+        const count = payload.result?.length ?? 0;
+        if (count === 0) {
+          toast.warning("Detection complete — no objects found.");
+        } else {
+          toast.success(
+            `Detection complete — found ${count} object${count > 1 ? "s" : ""}.`,
+          );
+        }
         setStatus("detection:complete");
         setResult(payload.result);
         break;
+      }
       case "error":
         setStatus("error");
         setReady(null);
