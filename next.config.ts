@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "export",
+  images: { unoptimized: true },
 
   // Override the default webpack configuration
   webpack: (config) => {
